@@ -72,7 +72,8 @@ public class SecurityConfig {
      * @throws Exception 配置異常
      */
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
+            throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
@@ -86,144 +87,140 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            // 配置 CORS
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            // 禁用 CSRF（因為使用 JWT）
-            .csrf(csrf -> csrf.disable())
-            // 配置無狀態會話
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            // 配置請求授權
-            .authorizeHttpRequests(auth -> auth
-                // 公開接口
-                .requestMatchers(
-                    "/api/auth/**", 
-                    "/api/oauth2/**", 
-                    "/oauth2/authorization/**", 
-                    "/oauth2/code/**", 
-                    "/oauth2/callback/**",
-                    "/api/public/**",
-                    "/api/vendor/all",
-                    "/api/vendor/category/show",
-                    "/shop/**",
-                    "/shop/products",
-                    "/shop/productDetail",
-                    "/api/**",
-                    "api/**",
-                    "/api/vendor/**",
+                // 配置 CORS
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                // 禁用 CSRF（因為使用 JWT）
+                .csrf(csrf -> csrf.disable())
+                // 配置無狀態會話
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // 配置請求授權
+                .authorizeHttpRequests(auth -> auth
+                        // 公開接口
+                        .requestMatchers(
+                                "/api/auth/**",
+                                "/api/oauth2/**",
+                                "/oauth2/authorization/**",
+                                "/oauth2/code/**",
+                                "/oauth2/callback/**",
+                                "/api/public/**",
+                                "/api/vendor/all",
+                                "/api/vendor/category/show",
+                                "/shop/**",
+                                "/shop/products",
+                                "/shop/productDetail",
+                                "/api/**",
+                                "api/**",
+                                "/api/vendor/**",
 
-                    "/api/activity/**",
-                    "/manage/**", 
+                                "/api/activity/**",
+                                "/manage/**",
 
-                    "/chat/**", 
-                    "/chatRoom/**",
-                    "/chatRoomPhoto/**"
-                    
-                    
-                ).permitAll()
-                
-                // 會員接口 只要新增新的api街口就在這裡添加
-                .requestMatchers(
-                    "/api/member/**",
-                    "/api/vendor/{vendorId}",
-                    "/api/vendor/{vendorId}/image",
-                    "/api/vendor/category/{categoryId}",
-                    "/api/vendor/{vendorId}/review",
-                    "/api/vendor/review/{reviewId}",
-                    "/api/vendor/review/{reviewId}/photo",
-                    "/activity/all",
-                    "/activity/{activityId}",
-                    "/activity/{activityId}/review",
-                    "/shop/orderHistory",
-                    "/shop/checkout",
-                    "/shop/orders",
-                    "/vendor/**",
-                    "/api/vendor/**",
-                    "/api/activity/**"
-                ).hasRole("MEMBER")
-                
-                // 商家接口 只要新增新的api街口就在這裡添加
-                .requestMatchers(
-                    "/api/vendor/**",
-                    "/activity/**",
-                    "/api/vendor/{vendorId}/review/add",
-                    "/api/vendor/{vendorId}/review/star/add",
-                    "/api/vendor/review/{reviewId}/rewrite",
-                    "/api/vendor/review/{reviewId}/delete",
-                    "/vendor/admin/**"
-                ).hasAnyRole("MEMBER", "VENDOR")
-                
-                // 管理員接口 只要新增新的api街口就在這裡添加
-                .requestMatchers(
-                    "/api/admin/**",
-                    "/api/admin/dashboard",
-                    "/api/admin/users/**",
-                    "/api/admin/members",
-                    "/api/admin/vendors"
-                ).hasRole("ADMIN")
-                
-                // 其他請求需要認證
-                .anyRequest().authenticated()
-            )
-            // 配置 OAuth2 登入
-            .oauth2Login(oauth2 -> oauth2
-                .loginPage("/login")
-                .successHandler((request, response, authentication) -> {
-                    try {
-                        // 獲取 OAuth2 認證信息
-                        OAuth2AuthenticationToken oauthToken = (OAuth2AuthenticationToken) authentication;
-                        OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
-                        
-                        // 提取用戶信息
-                        String email = oauth2User.getAttribute("email");
-                        String name = oauth2User.getAttribute("name");
-                        String provider = oauthToken.getAuthorizedClientRegistrationId().toUpperCase();
-                        
-                        // 驗證郵箱
-                        if (email == null || email.isEmpty()) {
-                            response.sendRedirect("http://localhost:5173/login?error=true&message=" + 
-                                java.net.URLEncoder.encode("未獲取到電子郵件，無法完成登入", "UTF-8"));
-                            return;
-                        }
-                        
-                        // 查找用戶
-                        User user = memberLoginService.findByEmail(email);
-                        Integer userId = (user != null) ? user.getId() : null;
-                        String role = (user != null) ? user.getUserRole().toString() : "MEMBER";
-                        
-                        // 驗證用戶存在
-                        if (user == null) {
-                            response.sendRedirect("http://localhost:5173/login?error=true&message=" + 
-                                java.net.URLEncoder.encode("用戶不存在，請聯繫管理員", "UTF-8"));
-                            return;
-                        }
-                        
-                        // 生成 JWT 令牌
-                        String token = jwtUtil.generateToken(email, userId, role);
-                        response.sendRedirect("http://localhost:5173/login?token=" + token + 
-                            "&userId=" + userId + "&email=" + email + "&role=" + role);
-                    } catch (Exception e) {
-                        response.sendRedirect("http://localhost:5173/login?error=true&message=" + 
-                            java.net.URLEncoder.encode("登入過程中發生錯誤: " + e.getMessage(), "UTF-8"));
-                    }
-                })
-            )
-            // 添加 JWT 過濾器
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-            // 配置異常處理
-            .exceptionHandling(exception -> exception
-                // 處理未認證異常
-                .authenticationEntryPoint((request, response, authException) -> {
-                    response.setContentType("application/json;charset=UTF-8");
-                    response.setStatus(401);
-                    response.getWriter().write("{\"error\":\"未登入或登入已過期\"}");
-                })
-                // 處理未授權異常
-                .accessDeniedHandler((request, response, accessDeniedException) -> {
-                    response.setContentType("application/json;charset=UTF-8");
-                    response.setStatus(403);
-                    response.getWriter().write("{\"error\":\"沒有權限訪問此資源\"}");
-                })
-            );
+                                "/chat/**",
+                                "/chatRoom/**",
+                                "/chatRoomPhoto/**"
+
+                        ).permitAll()
+
+                        // 會員接口 只要新增新的api街口就在這裡添加
+                        .requestMatchers(
+                                "/api/member/**",
+                                "/api/vendor/{vendorId}",
+                                "/api/vendor/{vendorId}/image",
+                                "/api/vendor/category/{categoryId}",
+                                "/api/vendor/{vendorId}/review",
+                                "/api/vendor/review/{reviewId}",
+                                "/api/vendor/review/{reviewId}/photo",
+                                "/activity/all",
+                                "/activity/{activityId}",
+                                "/activity/{activityId}/review",
+                                "/shop/orderHistory",
+                                "/shop/checkout",
+                                "/shop/orders",
+                                "/vendor/**",
+                                "/api/vendor/**",
+                                "/api/activity/**")
+                        .hasRole("MEMBER")
+
+                        // 商家接口 只要新增新的api街口就在這裡添加
+                        .requestMatchers(
+                                "/api/vendor/**",
+                                "/activity/**",
+                                "/api/vendor/{vendorId}/review/add",
+                                "/api/vendor/{vendorId}/review/star/add",
+                                "/api/vendor/review/{reviewId}/rewrite",
+                                "/api/vendor/review/{reviewId}/delete",
+                                "/vendor/admin/**")
+                        .hasAnyRole("MEMBER", "VENDOR")
+
+                        // 管理員接口 只要新增新的api街口就在這裡添加
+                        .requestMatchers(
+                                "/api/admin/**",
+                                "/api/admin/dashboard",
+                                "/api/admin/users/**",
+                                "/api/admin/members",
+                                "/api/admin/vendors")
+                        .hasRole("ADMIN")
+
+                        // 其他請求需要認證
+                        .anyRequest().authenticated())
+                // 配置 OAuth2 登入
+                .oauth2Login(oauth2 -> oauth2
+                        .loginPage("/login")
+                        .successHandler((request, response, authentication) -> {
+                            try {
+                                // 獲取 OAuth2 認證信息
+                                OAuth2AuthenticationToken oauthToken = (OAuth2AuthenticationToken) authentication;
+                                OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
+
+                                // 提取用戶信息
+                                String email = oauth2User.getAttribute("email");
+                                String name = oauth2User.getAttribute("name");
+                                String provider = oauthToken.getAuthorizedClientRegistrationId().toUpperCase();
+
+                                // 驗證郵箱
+                                if (email == null || email.isEmpty()) {
+                                    response.sendRedirect("http://localhost:5173/login?error=true&message=" +
+                                            java.net.URLEncoder.encode("未獲取到電子郵件，無法完成登入", "UTF-8"));
+                                    return;
+                                }
+
+                                // 查找用戶
+                                User user = memberLoginService.findByEmail(email);
+                                Integer userId = (user != null) ? user.getId() : null;
+                                String role = (user != null) ? user.getUserRole().toString() : "MEMBER";
+
+                                // 驗證用戶存在
+                                if (user == null) {
+                                    response.sendRedirect("http://localhost:5173/login?error=true&message=" +
+                                            java.net.URLEncoder.encode("用戶不存在，請聯繫管理員", "UTF-8"));
+                                    return;
+                                }
+
+                                // 生成 JWT 令牌
+                                String token = jwtUtil.generateToken(email, userId, role);
+                                response.sendRedirect("http://localhost:5173/login?token=" + token +
+                                        "&userId=" + userId + "&email=" + email + "&role=" + role);
+                            } catch (Exception e) {
+                                response.sendRedirect("http://localhost:5173/login?error=true&message=" +
+                                        java.net.URLEncoder.encode("登入過程中發生錯誤: " + e.getMessage(), "UTF-8"));
+                            }
+                        }))
+                // 添加 JWT 過濾器
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                // 配置異常處理
+                .exceptionHandling(exception -> exception
+                        // 處理未認證異常
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setContentType("application/json;charset=UTF-8");
+                            response.setStatus(401);
+                            response.getWriter().write("{\"error\":\"未登入或登入已過期\"}");
+                        })
+                        // 處理未授權異常
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setContentType("application/json;charset=UTF-8");
+                            response.setStatus(403);
+                            response.getWriter().write("{\"error\":\"沒有權限訪問此資源\"}");
+                        }));
         return http.build();
     }
 
@@ -237,14 +234,15 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         // 允許的來源
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173", "http://localhost:3000","http://localhost:5174"));
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173", "http://localhost:3000",
+                "http://localhost:5174", "https://delightful-stone-0031b1a00.6.azurestaticapps.net"));
         // 允許的 HTTP 方法
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         // 允許的請求頭
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
         // 允許發送認證信息
         configuration.setAllowCredentials(true);
-        
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
