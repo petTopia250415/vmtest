@@ -15,7 +15,8 @@ import petTopia.repository.shop.CouponRepository;
 
 @RestController
 @RequestMapping("/api/admin/coupons")
-@CrossOrigin(origins = {"http://localhost:5173", "http://localhost:8080"}, allowCredentials = "true")
+@CrossOrigin(origins = { "http://localhost:5173", "http://localhost:8080",
+        "https://delightful-stone-0031b1a00.6.azurestaticapps.net" }, allowCredentials = "true")
 public class CouponController {
 
     @Autowired
@@ -28,10 +29,10 @@ public class CouponController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String status) {
-        
+
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by("id").descending());
         Page<Coupon> couponPage;
-        
+
         if (keyword != null && !keyword.isEmpty()) {
             // 如果有關鍵字，搜尋名稱
             couponPage = couponRepository.findByNameContaining(keyword, pageRequest);
@@ -91,4 +92,4 @@ public class CouponController {
             return ResponseEntity.badRequest().body("刪除優惠券失敗：" + e.getMessage());
         }
     }
-} 
+}

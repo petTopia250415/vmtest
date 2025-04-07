@@ -12,7 +12,6 @@ import petTopia.model.user.User;
 import petTopia.service.user.MemberLoginService;
 import jakarta.servlet.http.HttpServletRequest;
 
-
 @Controller
 @RequestMapping("/oauth2")
 public class OAuth2RedirectController {
@@ -24,20 +23,20 @@ public class OAuth2RedirectController {
     private JwtUtil jwtUtil;
 
     // 前端應用的URL
-    private static final String FRONTEND_URL = "http://localhost:5173";
+    private static final String FRONTEND_URL = "https://delightful-stone-0031b1a00.6.azurestaticapps.net";
 
     @GetMapping("/callback")
     public RedirectView oauth2Callback(
-            @RequestParam String email, 
+            @RequestParam String email,
             @RequestParam String name,
             @RequestParam String provider,
             HttpServletRequest request) {
-        
+
         try {
             // 查找或創建用戶
             User user = memberLoginService.findByEmail(email);
             boolean isNewUser = false;
-            
+
             if (user == null) {
                 // 這裡應該實現實際創建用戶的邏輯
                 // 這是模擬創建的示例
@@ -46,10 +45,9 @@ public class OAuth2RedirectController {
 
             // 生成JWT令牌
             String token = jwtUtil.generateToken(
-                email,
-                user.getId(),
-                user.getUserRole().toString()
-            );
+                    email,
+                    user.getId(),
+                    user.getUserRole().toString());
 
             // 構建重定向URL
             StringBuilder redirectUrl = new StringBuilder(FRONTEND_URL);
@@ -58,7 +56,7 @@ public class OAuth2RedirectController {
             redirectUrl.append("&userId=").append(user.getId());
             redirectUrl.append("&email=").append(email);
             redirectUrl.append("&role=").append(user.getUserRole().toString());
-            
+
             if (isNewUser) {
                 redirectUrl.append("&newUser=true");
             }
@@ -69,4 +67,4 @@ public class OAuth2RedirectController {
             return new RedirectView(FRONTEND_URL + "/login?error=true&message=" + e.getMessage());
         }
     }
-} 
+}

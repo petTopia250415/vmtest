@@ -179,8 +179,10 @@ public class SecurityConfig {
 
                                 // 驗證郵箱
                                 if (email == null || email.isEmpty()) {
-                                    response.sendRedirect("http://localhost:5173/login?error=true&message=" +
-                                            java.net.URLEncoder.encode("未獲取到電子郵件，無法完成登入", "UTF-8"));
+                                    response.sendRedirect(
+                                            "https://delightful-stone-0031b1a00.6.azurestaticapps.net/login?error=true&message="
+                                                    +
+                                                    java.net.URLEncoder.encode("未獲取到電子郵件，無法完成登入", "UTF-8"));
                                     return;
                                 }
 
@@ -191,18 +193,24 @@ public class SecurityConfig {
 
                                 // 驗證用戶存在
                                 if (user == null) {
-                                    response.sendRedirect("http://localhost:5173/login?error=true&message=" +
-                                            java.net.URLEncoder.encode("用戶不存在，請聯繫管理員", "UTF-8"));
+                                    response.sendRedirect(
+                                            "https://delightful-stone-0031b1a00.6.azurestaticapps.net/login?error=true&message="
+                                                    +
+                                                    java.net.URLEncoder.encode("用戶不存在，請聯繫管理員", "UTF-8"));
                                     return;
                                 }
 
                                 // 生成 JWT 令牌
                                 String token = jwtUtil.generateToken(email, userId, role);
-                                response.sendRedirect("http://localhost:5173/login?token=" + token +
-                                        "&userId=" + userId + "&email=" + email + "&role=" + role);
+                                response.sendRedirect(
+                                        "https://delightful-stone-0031b1a00.6.azurestaticapps.net/login?token=" + token
+                                                +
+                                                "&userId=" + userId + "&email=" + email + "&role=" + role);
                             } catch (Exception e) {
-                                response.sendRedirect("http://localhost:5173/login?error=true&message=" +
-                                        java.net.URLEncoder.encode("登入過程中發生錯誤: " + e.getMessage(), "UTF-8"));
+                                response.sendRedirect(
+                                        "https://delightful-stone-0031b1a00.6.azurestaticapps.net/login?error=true&message="
+                                                +
+                                                java.net.URLEncoder.encode("登入過程中發生錯誤: " + e.getMessage(), "UTF-8"));
                             }
                         }))
                 // 添加 JWT 過濾器
