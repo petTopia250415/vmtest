@@ -180,7 +180,7 @@ public class SecurityConfig {
                                 // 驗證郵箱
                                 if (email == null || email.isEmpty()) {
                                     response.sendRedirect(
-                                            "https://delightful-stone-0031b1a00.6.azurestaticapps.net/login?error=true&message="
+                                            "https://pettopia-vue-test.onrender.com/login?error=true&message="
                                                     +
                                                     java.net.URLEncoder.encode("未獲取到電子郵件，無法完成登入", "UTF-8"));
                                     return;
@@ -194,7 +194,7 @@ public class SecurityConfig {
                                 // 驗證用戶存在
                                 if (user == null) {
                                     response.sendRedirect(
-                                            "https://delightful-stone-0031b1a00.6.azurestaticapps.net/login?error=true&message="
+                                            "https://pettopia-vue-test.onrender.com/login?error=true&message="
                                                     +
                                                     java.net.URLEncoder.encode("用戶不存在，請聯繫管理員", "UTF-8"));
                                     return;
@@ -203,12 +203,12 @@ public class SecurityConfig {
                                 // 生成 JWT 令牌
                                 String token = jwtUtil.generateToken(email, userId, role);
                                 response.sendRedirect(
-                                        "https://delightful-stone-0031b1a00.6.azurestaticapps.net/login?token=" + token
+                                        "https://pettopia-vue-test.onrender.com/login?token=" + token
                                                 +
                                                 "&userId=" + userId + "&email=" + email + "&role=" + role);
                             } catch (Exception e) {
                                 response.sendRedirect(
-                                        "https://delightful-stone-0031b1a00.6.azurestaticapps.net/login?error=true&message="
+                                        "https://pettopia-vue-test.onrender.com/login?error=true&message="
                                                 +
                                                 java.net.URLEncoder.encode("登入過程中發生錯誤: " + e.getMessage(), "UTF-8"));
                             }
@@ -243,7 +243,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         // 允許的來源
         configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173", "http://localhost:3000",
-                "http://localhost:5174", "https://delightful-stone-0031b1a00.6.azurestaticapps.net"));
+                "http://localhost:5174", "https://pettopia-vue-test.onrender.com"));
         // 允許的 HTTP 方法
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         // 允許的請求頭

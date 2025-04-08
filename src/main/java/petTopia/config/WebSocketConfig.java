@@ -15,7 +15,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(@NonNull StompEndpointRegistry registry) {
         registry.addEndpoint("/chat") // WebSocket 端點
                 .setAllowedOrigins("http://localhost:5173", "http://localhost:5174",
-                        "https://delightful-stone-0031b1a00.6.azurestaticapps.net")
+                        "https://pettopia-vue-test.onrender.com")
                 .withSockJS();
     }
 

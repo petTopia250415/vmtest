@@ -23,7 +23,7 @@ public class OAuth2RedirectController {
     private JwtUtil jwtUtil;
 
     // 前端應用的URL
-    private static final String FRONTEND_URL = "https://delightful-stone-0031b1a00.6.azurestaticapps.net";
+    private static final String FRONTEND_URL = "https://pettopia-vue-test.onrender.com";
 
     @GetMapping("/callback")
     public RedirectView oauth2Callback(

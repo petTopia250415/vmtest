@@ -16,7 +16,7 @@ import petTopia.repository.shop.CouponRepository;
 @RestController
 @RequestMapping("/api/admin/coupons")
 @CrossOrigin(origins = { "http://localhost:5173", "http://localhost:8080",
-        "https://delightful-stone-0031b1a00.6.azurestaticapps.net" }, allowCredentials = "true")
+        "https://pettopia-vue-test.onrender.com" }, allowCredentials = "true")
 public class CouponController {
 
     @Autowired
